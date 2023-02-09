@@ -1,0 +1,18 @@
+{
+    "$schema": "https://aka.ms/teamsfx-env-config-schema",
+    "description": "You can customize the TeamsFx config for different environments. Visit https://aka.ms/teamsfx-env-config to learn more about this.",
+    "manifest": {
+        "appName": {
+            "short": "Base-App-local-debug",
+            "full": "Full name for Base-App-local-debug"
+        },
+        "description": {
+            "short": "Short description of Base-App-local-debug",
+            "full": "Full description of Base-App-local-debug"
+        },
+        "icons": {
+            "color": "resources/color.png",
+            "outline": "resources/outline.png"
+        }
+    }
+}
