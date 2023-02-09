@@ -8,7 +8,7 @@ import Tab from "./Tab";
 import "./App.css";
 import TabConfig from "./TabConfig";
 import { TeamsFxContext } from "./Context";
-import config from "./sample/lib/config";
+import config from "./utils/config";
 
 /**
  * The main app which handles the initialization and routing
