@@ -9,7 +9,9 @@
     },
     "dependencies": {
         "@microsoft/teamsfx": "^2.0.0",
-        "isomorphic-fetch": "^3.0.0"
+        "isomorphic-fetch": "^3.0.0",
+        "node-fetch": "^2.6.9",
+        "tedious": "^15.1.2"
     },
     "devDependencies": {
         "env-cmd": "^10.1.0"
