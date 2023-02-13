@@ -9,7 +9,10 @@ const toasterSuccessMessage = (message) => toast.success(message);
 class ErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { error: null, errorInfo: null };
+        this.state = {
+            error: null,
+            errorInfo: null
+        };
     }
 
     componentDidCatch(error, errorInfo) {
@@ -18,7 +21,7 @@ class ErrorBoundary extends React.Component {
             error: error,
             errorInfo: errorInfo
         })
-        // You can also log error messages to an error reporting service here
+        // You can also log error messages to a error reporting service here
     }
 
     render() {

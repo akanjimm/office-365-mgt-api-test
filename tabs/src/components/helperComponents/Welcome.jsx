@@ -7,8 +7,7 @@ import { useData } from "@microsoft/teamsfx-react";
 import { TeamsFxContext } from "../Context";
 
 export function Welcome(props) {
-  const { showFunction, environment } = {
-    showFunction: true,
+  const { environment, triggerConsent, apiClient } = {
     environment: window.location.hostname === "localhost" ? "local" : "azure",
     ...props,
   };
@@ -25,7 +24,7 @@ export function Welcome(props) {
       return userInfo;
     }
   });
-  const userName = (loading || error) ? "": data.displayName;
+  const userName = (loading || error) ? "" : data.displayName;
   const hubName = useData(async () => {
     await app.initialize();
     const context = await app.getContext();
@@ -41,8 +40,8 @@ export function Welcome(props) {
           <p className="center">Your app is running in {hubName}</p>
         )}
         <p className="center">Your app is running in your {friendlyEnvironmentName}</p>
-        <div style={{marginBottom: '100px'}}></div>
-        {showFunction && <AzureFunctions />}
+        <div style={{ marginBottom: '100px' }}></div>
+          <AzureFunctions triggerConsent={triggerConsent} apiClient={apiClient}/>
       </div>
     </div>
   );
