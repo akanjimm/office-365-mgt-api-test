@@ -5,7 +5,8 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["get", "post"]
+      "route":"{route:alpha}/{id:int?}",
+      "methods": ["get", "post", "put", "delete"]
     },
     {
       "type": "http",
