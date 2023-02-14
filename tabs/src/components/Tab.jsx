@@ -51,6 +51,8 @@ export default function Tab() {
     } catch (err) {
       if (err.message?.includes("resourceDisabled")) {
         setIsConfigured(false)
+      } else if (err.message?.includes("Get SSO token failed")) {
+        setIsConfigured(false)
       } else {
         toasterErrorMessage("An error occured!")
       }
@@ -71,7 +73,7 @@ export default function Tab() {
 
   // function to show or hide consent page when consent is needed here or down in the component tree
   const triggerConsent = (booleanValue) => {
-    setNeedConsent(booleanValue)
+    setNeedConsent(booleanValue);
   }
 
   // call azure functions consent endpoint to check if there is a need to consent to permissions
@@ -86,10 +88,7 @@ export default function Tab() {
       if (errorMessage.includes("invalid_grant")) {
         triggerConsent(true);
       } else {
-        // the condition is to avoid showing the error popup when the component is rendered in an unconfigured tenant since a configure error page would be showed
-        if (isConfigured) {
-          toasterErrorMessage("An error occured!")
-        }
+        toasterErrorMessage("An error occured!");
       }
     }
   });
@@ -97,7 +96,7 @@ export default function Tab() {
   return (
     <div className={themeString === "default" ? "" : "dark"}>
       {loading && <Loader />}
-      {!isConfigured && !loading && <Configure/>}
+      {!isConfigured && !loading && <Configure />}
       {isConfigured && !loading && <div>{needConsent ? <Consent triggerConsent={triggerConsent} /> : <Welcome triggerConsent={triggerConsent} apiClient={apiClient} />}</div>}
       <Toaster toastOptions={{ duration: 5000 }} />
     </div>
