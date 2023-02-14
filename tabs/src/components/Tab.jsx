@@ -7,12 +7,10 @@ import { BearerTokenAuthProvider, createApiClient } from "@microsoft/teamsfx";
 import { useData } from "@microsoft/teamsfx-react";
 import Consent from "./helperComponents/Consent";
 import { Loader } from "@fluentui/react-northstar";
+import * as microsoftTeams from '@microsoft/teams-js';
 import { toasterErrorMessage } from "./utils/errorHandlingUtils";
 import { Toaster } from "react-hot-toast";
 
-const functionName = config.apiName || "myFunc";
-
-const showFunction = Boolean(config.apiName);
 /* TODO
   * implement checking if a tenant is configured to use the application
 */
@@ -20,6 +18,25 @@ const showFunction = Boolean(config.apiName);
 export default function Tab() {
   const { themeString } = useContext(TeamsFxContext);
   const [needConsent, setNeedConsent] = useState();
+
+  // stop native loading indicator defined in manifest when app loads
+  useData(async () => {
+    try {
+      await microsoftTeams.app.initialize();
+      const context = await microsoftTeams.app.getContext();
+
+      if (Object.values(microsoftTeams.HostName).includes(context.app.host.name)) {
+        microsoftTeams.app.notifySuccess();
+      }
+    } catch (error) {
+      microsoftTeams.app.notifyFailure(
+        {
+          reason: microsoftTeams.app.FailedReason.Timeout,
+          message: error
+        }
+      )
+    }
+  })
 
   // Create API client
   const teamsUserCredential = useContext(TeamsFxContext).teamsUserCredential;
@@ -59,7 +76,7 @@ export default function Tab() {
   return (
     <div className={themeString === "default" ? "" : "dark"}>
       {loading && <Loader />}
-      {!loading && <div>{needConsent ? <Consent triggerConsent={triggerConsent}/> : <Welcome triggerConsent={triggerConsent} apiClient={apiClient} />}</div>}
+      {!loading && <div>{needConsent ? <Consent triggerConsent={triggerConsent} /> : <Welcome triggerConsent={triggerConsent} apiClient={apiClient} />}</div>}
       <Toaster toastOptions={{ duration: 5000 }} />
     </div>
   );
