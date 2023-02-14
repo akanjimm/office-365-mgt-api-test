@@ -8,8 +8,10 @@ import { useData } from "@microsoft/teamsfx-react";
 import Consent from "./helperComponents/Consent";
 import { Loader } from "@fluentui/react-northstar";
 import * as microsoftTeams from '@microsoft/teams-js';
+import { TeamsFx } from '@microsoft/teamsfx';
 import { toasterErrorMessage } from "./utils/errorHandlingUtils";
 import { Toaster } from "react-hot-toast";
+import Configure from "./helperComponents/Configure";
 
 /* TODO
   * implement checking if a tenant is configured to use the application
@@ -17,6 +19,7 @@ import { Toaster } from "react-hot-toast";
 
 export default function Tab() {
   const { themeString } = useContext(TeamsFxContext);
+  const [isConfigured, setIsConfigured] = useState();
   const [needConsent, setNeedConsent] = useState();
 
   // stop native loading indicator defined in manifest when app loads
@@ -38,6 +41,22 @@ export default function Tab() {
     }
   })
 
+  // check if current tenant is configured to use the application
+  // this is applicable if the registered Azure AD app is single tenant
+  useData(async () => {
+    try {
+      let teamsfx = new TeamsFx();
+      await teamsfx.getUserInfo();
+      setIsConfigured(true);
+    } catch (err) {
+      if (err.message?.includes("resourceDisabled")) {
+        setIsConfigured(false)
+      } else {
+        toasterErrorMessage("An error occured!")
+      }
+    }
+  })
+
   // Create API client
   const teamsUserCredential = useContext(TeamsFxContext).teamsUserCredential;
   if (!teamsUserCredential) {
@@ -55,20 +74,22 @@ export default function Tab() {
     setNeedConsent(booleanValue)
   }
 
-  // call azure functions to check if there is a need to consent to permissions
+  // call azure functions consent endpoint to check if there is a need to consent to permissions
   const { loading } = useData(async () => {
     try {
       const response = await apiClient.get("consent");
       if (response.data === "True") {
         triggerConsent(false);
       }
-      return response.data;
     } catch (error) {
       let errorMessage = error.response.data.error;
       if (errorMessage.includes("invalid_grant")) {
         triggerConsent(true);
       } else {
-        toasterErrorMessage("An error occured!")
+        // the condition is to avoid showing the error popup when the component is rendered in an unconfigured tenant since a configure error page would be showed
+        if (isConfigured) {
+          toasterErrorMessage("An error occured!")
+        }
       }
     }
   });
@@ -76,7 +97,8 @@ export default function Tab() {
   return (
     <div className={themeString === "default" ? "" : "dark"}>
       {loading && <Loader />}
-      {!loading && <div>{needConsent ? <Consent triggerConsent={triggerConsent} /> : <Welcome triggerConsent={triggerConsent} apiClient={apiClient} />}</div>}
+      {!isConfigured && !loading && <Configure/>}
+      {isConfigured && !loading && <div>{needConsent ? <Consent triggerConsent={triggerConsent} /> : <Welcome triggerConsent={triggerConsent} apiClient={apiClient} />}</div>}
       <Toaster toastOptions={{ duration: 5000 }} />
     </div>
   );
