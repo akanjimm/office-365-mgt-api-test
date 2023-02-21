@@ -5,6 +5,7 @@ const fetch = require("node-fetch"); // to install, use npm install node-fetch@2
 const { Connection, Request } = require('tedious');
 
 const config = require("../config");
+const msal = require('@azure/msal-node');
 
 /**
 * @param {Context} context - The Azure Functions context object.
@@ -31,6 +32,9 @@ module.exports = async function (context, req, teamsfxContext) {
 
     // get access token through on-behalf-of flow
     let accessToken = await getAccessToken(ssoToken);
+
+    // get access token to call Office365 management API (Audit Sharepoint)
+    let accessTokenO365API = await getAccessTokenWithMsal(ssoToken);
 
     // Primary routing
     let response;
@@ -65,6 +69,8 @@ module.exports = async function (context, req, teamsfxContext) {
   }
 };
 
+
+// Secondary routing
 async function getRequestHandler(accessToken, route) {
   try {
     let data, query;
@@ -120,7 +126,7 @@ async function getAccessToken(ssoToken) {
     urlencoded.append('client_id', config.clientId);
     urlencoded.append('client_secret', config.clientSecret);
     urlencoded.append('assertion', ssoToken);
-    urlencoded.append('scope', "User.Read User.ReadBasic.All User.Read.All");
+    urlencoded.append('scope', "User.Read");
     urlencoded.append('requested_token_use', 'on_behalf_of');
 
     let options = {
@@ -172,6 +178,34 @@ async function getSignedInUserData(accessToken) {
     throw { status: 500, message: "Unable to get user's Microsoft 365 data." };
   }
 }
+
+/* *********** OFFICE 365 MANAGEMENT API FUNCTIONS *********** */
+// function to get access token for authorization with O365 management api endpoints
+async function getAccessTokenWithMsal() {
+  const msalConfig = {
+    auth: {
+      clientId: config.clientId,
+      authority: `https://login.microsoftonline.com/${config.tenantId}`,
+      clientSecret: config.clientSecret,
+      knownAuthorities: [],
+    }
+  }
+  const cca = new msal.ConfidentialClientApplication(msalConfig);
+  const clientCredentialRequest = {
+    scopes: ["https://manage.office.com/.default"],
+  };
+
+  try {
+    let response = await cca.acquireTokenByClientCredential(clientCredentialRequest)
+    return response.accessToken
+  } catch (error) {
+    // Todo: remove console logs and replace with necessary action
+    console.log(">>>>>>>>> error", error)
+  }
+}
+
+/* *********** end *********** */
+
 
 // Create connection to SQL Server database
 async function getSQLConnection(teamsfx) {
