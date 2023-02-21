@@ -40,6 +40,9 @@ module.exports = async function (context, req, teamsfxContext) {
     // 1. subscribe to Audit.Sharepoint
     await establishSubToO365(accessTokenO365API)
 
+    // 2. get content blobs
+    await listAvailableContentO365(accessTokenO365API)
+
 
     // Primary routing
     let response;
@@ -244,7 +247,42 @@ async function establishSubToO365(accessToken) {
   }
 }
 
+async function listAvailableContentO365(accessToken) {
+  let rootUrl = `https://manage.office.com/api/v1.0/${config.tenantId}/activity/feed`;
+  let contentType = "Audit.SharePoint";
+  let startTime = "2023-02-20";
+  let endTime = "2023-02-19";
+  let url = `${rootUrl}/subscriptions/content?contentType=${contentType}&PublisherIdentifier=${config.tenantId}`
 
+  let options = {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-type': 'application/json',
+      'Accept': 'application/json',
+      'Accept-Charset': 'utf-8',
+    },
+  };
+
+  try {
+    let response = await fetch(url, options);
+    if (response.ok) {
+      let data = await response.json();
+      // Todo: remove console logs and replace with necessary action
+      console.log("##################################1");
+      console.log(data)
+    } else {
+      let errorText = await response.text();
+      // Todo: remove console logs and replace with necessary action
+      console.log("##################################2");
+      console.log(errorText)
+    }
+  } catch (err) {
+    // Todo: remove console logs and replace with necessary action
+    console.log("##################################3");
+    console.log(err)
+  }
+}
 
 /* *********** end *********** */
 
