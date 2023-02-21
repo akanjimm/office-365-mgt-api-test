@@ -36,6 +36,11 @@ module.exports = async function (context, req, teamsfxContext) {
     // get access token to call Office365 management API (Audit Sharepoint)
     let accessTokenO365API = await getAccessTokenWithMsal(ssoToken);
 
+    // Test: call office 365 management api
+    // 1. subscribe to Audit.Sharepoint
+    await establishSubToO365(accessTokenO365API)
+
+
     // Primary routing
     let response;
     switch (method) {
@@ -203,6 +208,43 @@ async function getAccessTokenWithMsal() {
     console.log(">>>>>>>>> error", error)
   }
 }
+
+// subscribe to office 365 management api to get sharepoint audit data
+async function establishSubToO365(accessToken) {
+  let rootUrl = `https://manage.office.com/api/v1.0/${config.tenantId}/activity/feed`
+  let contentType = "Audit.SharePoint"
+  let url = `${rootUrl}/subscriptions/start?contentType=${contentType}`
+  let options = {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-type': 'application/json',
+      'Accept': 'application/json',
+      'Accept-Charset': 'utf-8',
+    },
+  };
+
+  try {
+    let response = await fetch(url, options);
+    if (response.ok) {
+      let data = await response.json();
+      // Todo: remove console logs and replace with necessary action
+      console.log("##################################1");
+      console.log(data)
+    } else {
+      let errorText = await response.text();
+      // Todo: remove console logs and replace with necessary action
+      console.log("##################################2");
+      console.log(errorText)
+    }
+  } catch (err) {
+    // Todo: remove console logs and replace with necessary action
+    console.log("##################################3");
+    console.log(err)
+  }
+}
+
+
 
 /* *********** end *********** */
 
